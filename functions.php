@@ -461,10 +461,7 @@ function products_has_category_name()
         endfor;
 
     endfor;
-
-    // echo '<pre>';
-    // print_r($arr);
-    // echo '</pre>';  
+ 
     return $arr;
 }
 // add_action('wp_footer', 'products_has_category_name');
@@ -476,7 +473,6 @@ function products_has_category_name()
  */
 function register_metaboxes() {
     add_meta_box( 'product-old-id', __( 'ID antigo', 'textdomain' ), 'metaboxes_display_callback', 'products' );
-    // add_meta_box($id, $title, $callback, $screen, $context, $priority, $callback_args)
 }
 add_action( 'add_meta_boxes', 'register_metaboxes');
 
@@ -1148,3 +1144,64 @@ if ( ! wp_next_scheduled( 'import_products_from_old_db' ) ) :
     wp_schedule_event( time(), 'daily', 'import_products_from_old_db' );
 endif;
 add_action('import_products_from_old_db', 'import_read_and_publish_products');
+
+
+/**
+ * Custom filter by categories with ajax shortcode
+ * 
+ * @link https://rudrastyh.com/wordpress/ajax-post-filters.html
+ */
+function custom_filter_ajax_by_categories()
+{
+    $args = array(
+        'taxonomy'          => 'categorias',
+        'orderby'           => 'name',
+        'hierarchical'      => true,
+        'hide_empty'        => false,
+    );
+    $terms = get_terms($args);
+
+    // echo '<pre>';
+    // print_r($terms);
+    // echo '</pre>';
+    $super_parents_ids = array();
+    $parents_ids = array();
+    ?>
+    <form action="<?php echo admin_url('admin-ajax.php'); ?>" method="POST" id="filter_ajax">
+
+        <div class="" id="">        
+            <?php 
+            foreach ($terms as $term) : 
+                if ($term->parent == '0') : 
+                    $super_parents_ids[] = $term->term_id;?>
+                    <span class=""><?php echo $term->name ?></span>
+                    <span class=""><?php echo $term->description ?></span>
+                <?php 
+                endif;
+            endforeach; ?>
+        </div>
+        
+        <div class="" id="">
+            <?php
+            foreach ($terms as $term) :
+                if (!in_array($term->term_id, $super_parents_ids)) : 
+                    $parents_ids[] = $term->term_id; ?>
+                    <span class=""><?php echo $term->name ?></span>
+                <?php 
+                endif;
+            endforeach; ?>
+        </div>
+        
+        <div class="" id="">
+        <?php
+        foreach ($terms as $term) :
+            if (in_array($term->parent, $parents_ids)) : ?>
+                <span class=""><?php echo $term->name ?></span>
+            <?php 
+            endif;
+        endforeach; ?>
+        </div>
+    </form>
+    <?php
+}
+add_shortcode('filter_ajax_by_categories', 'custom_filter_ajax_by_categories');
