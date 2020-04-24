@@ -11,3 +11,49 @@
  Tags:         child theme
  Text Domain:  betheme-child
 */
+
+/* FILTER */
+.filter{
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #cccccc;
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+
+/* E: Elementos de filter */
+.filter__container{
+    border-top: 1px solid #cccccc;
+}
+
+.filter__parents{
+    display: none;
+}
+
+.filter__childrens{
+    display: none;
+}
+
+.filter__item{
+    margin: auto 8px;
+    cursor: pointer;
+}
+
+.filter__text{
+    font-size: 18px;
+    font-weight: 300;
+    color: #3E3E51;
+    margin-bottom: 4px;
+    display: block;
+    cursor: pointer;
+}
+
+/* M: Modifiers filter */
+.filter--show{
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}

@@ -1184,39 +1184,92 @@ function custom_filter_ajax_by_categories()
     $super_parents_ids = array();
     $parents_ids = array();
     ?>
-    <form action="<?php echo admin_url('admin-ajax.php'); ?>" method="POST" id="filter_ajax">
 
-        <div class="" id="">        
-            <?php 
-            foreach ($terms as $term) : 
-                if ($term->parent == '0') : 
-                    $super_parents_ids[] = $term->term_id;?>
-                    <span class=""><?php echo $term->name ?></span>
-                    <span class=""><?php echo $term->description ?></span>
-                <?php 
-                endif;
-            endforeach; ?>
-        </div>
-        
-        <div class="" id="">
-            <?php
-            foreach ($terms as $term) :
-                if (!in_array($term->term_id, $super_parents_ids)) : 
-                    $parents_ids[] = $term->term_id; ?>
-                    <span class=""><?php echo $term->name ?></span>
-                <?php 
-                endif;
-            endforeach; ?>
-        </div>
-        
-        <div class="" id="">
-        <?php
-        foreach ($terms as $term) :
-            if (in_array($term->parent, $parents_ids)) : ?>
-                <span class=""><?php echo $term->name ?></span>
-            <?php 
-            endif;
-        endforeach; ?>
+    <script type="text/javascript">
+
+        // Show parents
+        function show_parents(el)
+        {
+            var sp_id = el.attr('data-parent');
+            var filter = jQuery('.filter__parents');
+            var childrens_sp = jQuery('.filter__parents').children();
+            
+            filter.addClass('filter--show');
+
+            childrens_sp.each(function(index)
+            {
+                if (jQuery(this).attr('data-parent') == sp_id)
+                {
+                    jQuery(this).show();
+                }
+                else
+                {
+                    jQuery(this).hide();
+                }
+            });
+
+            console.log(childrens_sp);
+        }
+
+        // Show childnres
+        function show_childrens(el)
+        {
+            var p_id = el.attr('data-children');
+            var filter = jQuery('.filter__childrens');
+            var childrens = jQuery('.filter__childrens').children();
+
+            filter.addClass('filter--show');
+
+            childrens.each(function(index)
+            {
+                if (jQuery(this).attr('data-parent') == p_id)
+                {
+                    jQuery(this).show();
+                }
+                else
+                {
+                    jQuery(this).hide();
+                }
+            })
+        }
+    </script>
+
+    <form action="<?php echo admin_url('admin-ajax.php'); ?>" method="POST" id="filter_ajax">
+        <div class="filter__container">
+                <div class="filter filter__superParents" id="">        
+                    <?php 
+                    foreach ($terms as $term) : 
+                        if ($term->parent == '0') : 
+                            $super_parents_ids[] = $term->term_id;?>
+                            <div data-parent="<?php echo $term->term_id; ?>" class="filter__item" onclick="show_parents(jQuery(this))">
+                                <span class="filter__text"><strong><?php echo $term->name ?></strong></span>
+                                <span class="filter__text"><?php echo $term->description ?></span>
+                            </div>
+                        <?php 
+                        endif;
+                    endforeach; ?>
+                </div>
+                
+                <div class="filter filter__parents" id="">
+                    <?php
+                    foreach ($terms as $term) :
+                        if (!in_array($term->term_id, $super_parents_ids)) : 
+                            $parents_ids[] = $term->term_id; ?>
+                            <span data-parent="<?php echo $term->parent; ?>" data-children="<?php echo $term->term_id; ?>" class="filter__text filter__text--hover" onclick="show_childrens(jQuery(this))"><?php echo $term->name ?></span>
+                        <?php 
+                        endif;
+                    endforeach; ?>
+                </div>
+                
+                <div class="filter filter__childrens" id="">
+                <?php
+                foreach ($terms as $term) :
+                    if (in_array($term->parent, $parents_ids)) : ?>
+                        <span data-parent="<?php echo $term->parent; ?>" class="filter__text filter__text--hover"><?php echo $term->name ?></span>
+                    <?php 
+                    endif;
+                endforeach; ?>
+                </div>
         </div>
     </form>
     <?php
