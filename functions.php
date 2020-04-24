@@ -95,7 +95,7 @@ add_action( 'init', 'create_custom_taxonomies', 0 );
  */
 function serialize_and_import_old_categories()
 {
-    $categorias = array(
+    $categories = array(
         array('id' => '31','id_categoria_pai' => '0','nome_pt' => 'QGBT / CCM','nome_es' => 'QGBT / CCM','nome_en' => '0','nome_seo' => 'qgbt-ccm','resumo' => 'Quadro Geral de Baixa Tensão<br />Centro de Controle de Motores','ordem' => '3','nivel' => '0','status' => '1','seo_title' => NULL,'seo_description' => NULL,'seo_keywords' => NULL,'data_update' => '2018-03-16 20:44:24','usuario_update' => 'rafaeldusantos'),
         array('id' => '34','id_categoria_pai' => '0','nome_pt' => 'Caixas e Paineis','nome_es' => 'Caixas e Painéis','nome_en' => 'Caixas e Painéis','nome_seo' => 'caixas-e-paineis','resumo' => 'Certificados de Baixa<br />Tensão','ordem' => '1','nivel' => '0','status' => '1','seo_title' => NULL,'seo_description' => NULL,'seo_keywords' => NULL,'data_update' => '2018-03-19 20:44:57','usuario_update' => 'rafaeldusantos'),
         array('id' => '33','id_categoria_pai' => '0','nome_pt' => 'Cubículos','nome_es' => '','nome_en' => '0','nome_seo' => 'cubiculos','resumo' => 'Certificados de Média<br />Tensão','ordem' => '2','nivel' => '0','status' => '1','seo_title' => NULL,'seo_description' => NULL,'seo_keywords' => NULL,'data_update' => '2018-03-16 20:44:18','usuario_update' => 'rafaeldusantos'),
@@ -121,17 +121,97 @@ function serialize_and_import_old_categories()
         array('id' => '60','id_categoria_pai' => '33','nome_pt' => 'Acessórios das Linhas','nome_es' => '','nome_en' => '0','nome_seo' => 'acessorios-das-linhas','resumo' => NULL,'ordem' => '5','nivel' => '1','status' => '1','seo_title' => '0','seo_description' => '0','seo_keywords' => '0','data_update' => '2018-04-06 16:25:54','usuario_update' => 'adminprocan')
     );
 
-    foreach ($categorias as $categoria) :
-        $term           = $categoria['nome_pt'];
+    # Definição das categorias pais
+    $super_parent_categories = array();
+    $anothers_categories = array();
+    foreach ($categories as $category) :
+        $term           = $category['nome_pt'];
+        $term_desc      = $category['resumo'];
+        $term_id        = $category['id'];
+        $parent_id      = $category['id_categoria_pai'];
+
+        if ($parent_id == '0') :
+            $super_parent_categories[$term_id] = array(
+                'term_name' => $term, 
+                'term_desc' => $term_desc, 
+                'old_id'    => $term_id
+            );
+        else :
+            $anothers_categories[$term_id] = array(
+                'term_name' => $term, 
+                'term_desc' => $term_desc, 
+                'term_id'   => $term_id,
+                'parent_id' => $parent_id,
+            );
+        endif;
+    endforeach;
+
+    # Definição das categorias pais e filhas
+    $parent_categories      = array();
+    $children_categories    = array();
+    foreach ($anothers_categories as $category) :
+        $term       = $category['term_name'];
+        $term_desc  = $category['term_desc'];
+        $term_id    = $category['term_id'];
+        $parent_id  = $category['parent_id'];
+
+        if (array_key_exists($parent_id, $super_parent_categories)) :
+            $parent_categories[$term_id] = array(
+                'term_name' => $term, 
+                'term_desc' => $term_desc, 
+                'parent_name' => $super_parent_categories[$parent_id]['term_name']
+            );
+        else :
+            $children_categories[] = array(
+                'term_name' => $term, 
+                'term_desc' => $term_desc,
+                'term_id'   => $term_id,
+                'parent_name' => $anothers_categories[$parent_id]['term_name']
+            );
+        endif;
+    endforeach;
+
+    # Inserção das super paterns
+    foreach ($super_parent_categories as $category) :
         $taxonomy       = 'categorias';
+        $term           = $category['term_name'];
         $args           = array(
-            'description'   => $categoria['resumo'],
+            'description'   => $category['term_desc'],
+        );
+
+        wp_insert_term($term, $taxonomy, $args);
+    endforeach;
+
+    # Inserção das parents
+    foreach ($parent_categories as $category) :
+        $taxonomy       = 'categorias';
+        $term           = $category['term_name'];
+        $parent_term    = get_term_by('name', $category['parent_name'], $taxonomy);
+        $parent_id      = $parent_term->term_id;
+        $args           = array(
+            'description'   => $category['term_desc'],
+            'parent'        => $parent_id,
+        );
+
+        wp_insert_term($term, $taxonomy, $args);
+    endforeach;
+
+
+    # Inserção dos childrens
+    foreach ($children_categories as $category) :
+        $taxonomy       = 'categorias';
+        $term           = $category['term_name'];
+        $parent_term    = get_term_by('name', $category['parent_name'], $taxonomy);
+        $parent_id      = $parent_term->term_id;
+        $args           = array(
+            'description'   => $category['term_desc'],
+            'parent'        => $parent_id,
         );
 
         wp_insert_term($term, $taxonomy, $args);
     endforeach;
 }
-// add_action('init', 'serialize_and_import_old_categories');
+// add_action('wp_footer', 'serialize_and_import_old_categories');
 
 /**
  * Retorna um array com produtos e o nome da categoria que ele pertence
