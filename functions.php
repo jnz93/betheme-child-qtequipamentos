@@ -1214,7 +1214,7 @@ function custom_filter_ajax_by_categories()
         // Show childnres
         function show_childrens(el)
         {
-            var p_id = el.attr('data-children');
+            var p_id = el.attr('data-id');
             var filter = jQuery('.filter__childrens');
             var childrens = jQuery('.filter__childrens').children();
 
@@ -1230,11 +1230,36 @@ function custom_filter_ajax_by_categories()
                 {
                     jQuery(this).hide();
                 }
-            })
+            });
+        }
+
+        function ajax_filter(el)
+        {
+            var filter = jQuery('#filter_ajax');
+
+            jQuery.ajax({
+                url: filter.attr('action'),
+                data: {
+                    action: 'qt_filter_function',
+                    term_id: el.attr('data-id')
+                },
+                type: filter.attr('method'),
+                beforeSend: function (xhr)
+                {
+                    filter.find('#waiting').text('Processing...');
+                },
+                success: function(data)
+                {
+                    jQuery('#result').html(data);
+                }
+            });
+
+            return false;
         }
     </script>
 
-    <form action="<?php echo admin_url('admin-ajax.php'); ?>" method="POST" id="filter_ajax">
+    <form action="<?php echo admin_url('admin-ajax.php'); ?>" method="POST" id="filter_ajax" style="margin-bottom: 82px;">
+        <span id="waiting"></span>
         <div class="filter__container">
                 <div class="filter filter__superParents" id="">        
                     <?php 
@@ -1255,7 +1280,7 @@ function custom_filter_ajax_by_categories()
                     foreach ($terms as $term) :
                         if (!in_array($term->term_id, $super_parents_ids)) : 
                             $parents_ids[] = $term->term_id; ?>
-                            <span data-parent="<?php echo $term->parent; ?>" data-children="<?php echo $term->term_id; ?>" class="filter__text filter__text--hover" onclick="show_childrens(jQuery(this))"><?php echo $term->name ?></span>
+                            <span data-parent="<?php echo $term->parent; ?>" data-id="<?php echo $term->term_id; ?>" class="filter__text filter__text--hover" onclick="show_childrens(jQuery(this)), ajax_filter(jQuery(this))"><?php echo $term->name ?></span>
                         <?php 
                         endif;
                     endforeach; ?>
@@ -1265,13 +1290,87 @@ function custom_filter_ajax_by_categories()
                 <?php
                 foreach ($terms as $term) :
                     if (in_array($term->parent, $parents_ids)) : ?>
-                        <span data-parent="<?php echo $term->parent; ?>" class="filter__text filter__text--hover"><?php echo $term->name ?></span>
+                        <span data-parent="<?php echo $term->parent; ?>" data-id="<?php echo $term->term_id; ?>" class="filter__text filter__text--hover" onclick="show_childrens(jQuery(this)), ajax_filter(jQuery(this))"><?php echo $term->name ?></span>
                     <?php 
                     endif;
                 endforeach; ?>
                 </div>
         </div>
     </form>
+    
+    <div id="result"></div>
+
     <?php
 }
 add_shortcode('filter_ajax_by_categories', 'custom_filter_ajax_by_categories');
+
+
+
+/**
+ * Processing the ajax request
+ * 
+ */
+add_action('wp_ajax_qt_filter_function', 'qt_filter_function');
+add_action('wp_ajax_nopriv_qt_filter_function', 'qt_filter_function');
+
+function qt_filter_function()
+{
+    $term_id = $_POST['term_id'];
+
+    $args = array(
+        'post_type'     => 'products',
+        'post_status'   => 'publish',
+        'orderby'       => 'date',
+        'tax_query'     => array(
+            'taxonomy'  => 'categorias',
+            'field'     => 'term_id',
+            'terms'     => array($term_id)
+        ),
+    );
+
+    // $args['tax_query'] = array(
+    //     'taxonomy'  => 'categorias',
+    //     'field'     => 'id',
+    //     'terms'     => $_POST['term_id']
+    // );
+
+    $query = new WP_Query($args);
+    
+    if( $query->have_posts() ) :
+        echo 'Encontramos <b>' . $query->post_count . '</b> Produto(s)';
+        echo '<div class="card__container">';
+            while( $query->have_posts() ): 
+                $query->the_post();
+                $post_id                = get_the_ID();
+                $product_title          = get_the_title($post_id);
+                $product_thumbnail_url  = get_the_post_thumbnail_url($post_id, 'full');
+                $product_link           = get_the_permalink($post_id);
+
+                if (empty($product_thumbnail_url)) :
+                    $product_thumbnail_url = site_url() . '/wp-content/themes/betheme-child/assets/images/404_not_found.png';
+                endif;
+
+                $output = '<div class="card card__product">
+                            <a href="'. $product_link .'" target="_parent" class="card__link">
+                                <figure class="card__thumbContainer">
+                                    <img src="'. $product_thumbnail_url .'" alt="" class="card__thumb">
+                                </figure>
+                                <h3 class="card__title">'. $product_title .'</h3>
+                                <span class="card__btn">Saiba mais</span>
+                            </a>
+                        </div>';
+
+                echo $output;
+
+            endwhile;
+        echo '</div>';
+		wp_reset_postdata();
+	else :
+		echo 'No posts found';
+	endif;
+    
+    unset($term_id);
+    unset($args);
+    unset($query);
+	die();
+}
