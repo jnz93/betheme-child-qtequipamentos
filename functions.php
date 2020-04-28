@@ -1316,28 +1316,28 @@ add_action('wp_ajax_nopriv_qt_filter_function', 'qt_filter_function');
 function qt_filter_function()
 {
     $term_id = $_POST['term_id'];
+    $curr_term = get_term_by('id', $term_id, 'categorias');
+    $curr_term_name = $curr_term->name;
 
     $args = array(
         'post_type'     => 'products',
         'post_status'   => 'publish',
         'orderby'       => 'date',
+        'posts_per_page'=> '-1',
         'tax_query'     => array(
-            'taxonomy'  => 'categorias',
-            'field'     => 'term_id',
-            'terms'     => array($term_id)
+            array(
+                'taxonomy'  => 'categorias',
+                'field'     => 'term_id',
+                'terms'     => array($term_id)
+            ),
         ),
     );
 
-    // $args['tax_query'] = array(
-    //     'taxonomy'  => 'categorias',
-    //     'field'     => 'id',
-    //     'terms'     => $_POST['term_id']
-    // );
-
     $query = new WP_Query($args);
-    
+    $total_posts = $query->found_posts;
+
     if( $query->have_posts() ) :
-        echo 'Encontramos <b>' . $query->post_count . '</b> Produto(s)';
+        echo 'Encontramos <b>' . $total_posts . '</b> Produto(s) na categoria <b>' . $curr_term_name . '</b>';
         echo '<div class="card__container">';
             while( $query->have_posts() ): 
                 $query->the_post();
