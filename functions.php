@@ -1190,17 +1190,17 @@ function custom_filter_ajax_by_categories()
         // Show parents
         function show_parents(el)
         {
-            var sp_id = el.attr('data-parent');
-            var filter = jQuery('.filter__parents');
-            var childrens_sp = jQuery('.filter__parents').children();
+            var sp_id = el.attr('data-parent'),
+                filter = jQuery('.filter__parents'),
+                childrens_sp = jQuery('.filter__parents').children(),
+                count = 0;
             
-            filter.addClass('filter--show');
-
             childrens_sp.each(function(index)
             {
                 if (jQuery(this).attr('data-parent') == sp_id)
                 {
                     jQuery(this).show();
+                    count++;
                 }
                 else
                 {
@@ -1208,29 +1208,38 @@ function custom_filter_ajax_by_categories()
                 }
             });
 
-            console.log(childrens_sp);
+            if (count != 0)
+            {                
+                filter.addClass('filter--show');
+            }
+
         }
 
         // Show childnres
         function show_childrens(el)
         {
-            var p_id = el.attr('data-id');
-            var filter = jQuery('.filter__childrens');
-            var childrens = jQuery('.filter__childrens').children();
-
-            filter.addClass('filter--show');
+            var p_id = el.attr('data-id'),
+                filter = jQuery('.filter__childrens'),
+                childrens = jQuery('.filter__childrens').children(),
+                count = 0;
 
             childrens.each(function(index)
             {
                 if (jQuery(this).attr('data-parent') == p_id)
                 {
                     jQuery(this).show();
+                    count++;
                 }
                 else
                 {
                     jQuery(this).hide();
                 }
             });
+
+            if (count != 0)
+            {
+                filter.addClass('filter--show');
+            }
         }
 
         function ajax_filter(el)
@@ -1246,20 +1255,24 @@ function custom_filter_ajax_by_categories()
                 type: filter.attr('method'),
                 beforeSend: function (xhr)
                 {
-                    filter.find('#waiting').text('Processing...');
+                    filter.siblings('#loading').text('Processing...');
                 },
                 success: function(data)
                 {
                     jQuery('#result').html(data);
+                },
+                complete: function(xhr)
+                {
+                    filter.siblings('#loading').hide();
                 }
+
             });
 
             return false;
         }
     </script>
 
-    <form action="<?php echo admin_url('admin-ajax.php'); ?>" method="POST" id="filter_ajax" style="margin-bottom: 82px;">
-        <span id="waiting"></span>
+    <form action="<?php echo admin_url('admin-ajax.php'); ?>" method="POST" id="filter_ajax">
         <div class="filter__container">
                 <div class="filter filter__superParents" id="">        
                     <?php 
@@ -1287,18 +1300,18 @@ function custom_filter_ajax_by_categories()
                 </div>
                 
                 <div class="filter filter__childrens" id="">
-                <?php
-                foreach ($terms as $term) :
-                    if (in_array($term->parent, $parents_ids)) : ?>
-                        <span data-parent="<?php echo $term->parent; ?>" data-id="<?php echo $term->term_id; ?>" class="filter__text filter__text--hover" onclick="show_childrens(jQuery(this)), ajax_filter(jQuery(this))"><?php echo $term->name ?></span>
-                    <?php 
-                    endif;
-                endforeach; ?>
+                    <?php
+                    foreach ($terms as $term) :
+                        if (in_array($term->parent, $parents_ids)) : ?>
+                            <span data-parent="<?php echo $term->parent; ?>" data-id="<?php echo $term->term_id; ?>" class="filter__text filter__text--hover" onclick="show_childrens(jQuery(this)), ajax_filter(jQuery(this))"><?php echo $term->name ?></span>
+                        <?php 
+                        endif;
+                    endforeach; ?>
                 </div>
         </div>
     </form>
-    
-    <div id="result"></div>
+    <span id="loading" class="filter__loading loading" style="background-image: url('<?php echo site_url() . '/wp-content/themes/betheme-child/assets/images/icon_loading.png'; ?>');"></span>
+    <div id="result" style="margin-bottom: 82px;"></div>
 
     <?php
 }
@@ -1337,7 +1350,7 @@ function qt_filter_function()
     $total_posts = $query->found_posts;
 
     if( $query->have_posts() ) :
-        echo 'Encontramos <b>' . $total_posts . '</b> Produto(s) na categoria <b>' . $curr_term_name . '</b>';
+        echo '<p style="margin-top: 16px;">Encontramos <b>' . $total_posts . '</b> Produto(s) na categoria <b>' . $curr_term_name . '</b></p>';
         echo '<div class="card__container">';
             while( $query->have_posts() ): 
                 $query->the_post();
