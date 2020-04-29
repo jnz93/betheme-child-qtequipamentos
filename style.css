@@ -65,11 +65,32 @@
     display: none;
 }
 
+.filter__selectbox{
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-flow: row;
+    justify-content: space-evenly;
+    margin-bottom: 16px;
+}
+.filter__wrapperCheckbox{
+    display: flex;
+    align-items: center;
+    margin-right: 16px;
+}
+.filter__checkbox{
+    width: 20px;
+    height: 20px;
+}
+
 /* M: Modifiers filter */
 .filter--show{
     display: flex;
     align-items: center;
     justify-content: space-around;
+}
+.element--off{
+    display: none;
 }
 
 /* Card produtos */

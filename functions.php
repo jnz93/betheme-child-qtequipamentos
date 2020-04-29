@@ -1187,6 +1187,29 @@ function custom_filter_ajax_by_categories()
 
     <script type="text/javascript">
 
+        // Show options
+        function showFilterCategories(el)
+        {
+            var filter = jQuery('#filter_ajax'),
+                searchBox = jQuery('#search_box');
+
+            var checkFilter = jQuery('#check_category'),
+                checkSearch = jQuery('#check_search');
+
+            if(el.attr('id') == 'filter_category')
+            {
+                filter.removeClass('element--off');
+                searchBox.addClass('element--off');
+                checkSearch.attr('checked', false);
+            }
+            else
+            {
+                searchBox.removeClass('element--off');
+                filter.addClass('element--off');
+                checkFilter.attr('checked', false);
+            }
+        }
+
         // Show parents
         function show_parents(el)
         {
@@ -1272,7 +1295,17 @@ function custom_filter_ajax_by_categories()
         }
     </script>
 
-    <form action="<?php echo admin_url('admin-ajax.php'); ?>" method="POST" id="filter_ajax">
+    <div class="filter__selectbox">
+        <div onclick="showFilterCategories(jQuery(this))" id="filter_category" class="filter__wrapperCheckbox">
+            <input type="checkbox" id="check_category" name="category" class="filter__checkbox">
+            <label for="check_category" class="filter__text">Busca por categorias</label>
+        </div>
+        <div onclick="showFilterCategories(jQuery(this))" id="filter_search" class="filter__wrapperCheckbox">
+            <input type="checkbox" id="check_search" name="search" class="filter__checkbox">
+            <label for="check_search" class="filter__text">Digite o que deseja</label>
+        </div>
+    </div>
+    <form action="<?php echo admin_url('admin-ajax.php'); ?>" method="POST" id="filter_ajax" class="element--off">
         <div class="filter__container">
                 <div class="filter filter__superParents" id="">        
                     <?php 
@@ -1310,7 +1343,16 @@ function custom_filter_ajax_by_categories()
                 </div>
         </div>
     </form>
-    <span id="loading" class="filter__loading loading" style="background-image: url('<?php echo site_url() . '/wp-content/themes/betheme-child/assets/images/icon_loading.png'; ?>');"></span>
+    
+    <div id="search_box" class="search__box element--off">
+        <p class="search__title">o <b>que</b> você <b>procura?</b></p>
+
+        <div class="search__wrapperInput">
+            <input type="text" id="" class="" placeholder="Digite aqui">
+            <i class="fas fas-search"></i>
+        </div>
+    </div>
+    
     <div id="result" style="margin-bottom: 82px;"></div>
 
     <?php
