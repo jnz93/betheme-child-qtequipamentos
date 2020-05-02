@@ -1191,7 +1191,9 @@ function custom_filter_ajax_by_categories()
         function showFilterCategories(el)
         {
             var filter = jQuery('#filter_ajax'),
-                searchBox = jQuery('#search_box');
+                searchBox = jQuery('#search_box'),
+                results = jQuery('#result');
+            results.hide();
 
             var checkFilter = jQuery('#check_category'),
                 checkSearch = jQuery('#check_search');
@@ -1278,7 +1280,8 @@ function custom_filter_ajax_by_categories()
                 type: filter.attr('method'),
                 beforeSend: function (xhr)
                 {
-                    filter.siblings('#loading').text('Processing...');
+                    jQuery('#result').fadeOut();
+                    jQuery('#loader-qt').fadeIn();
                 },
                 success: function(data)
                 {
@@ -1286,7 +1289,8 @@ function custom_filter_ajax_by_categories()
                 },
                 complete: function(xhr)
                 {
-                    filter.siblings('#loading').hide();
+                    jQuery('#loader-qt').fadeOut();
+                    jQuery('#result').fadeIn();
                 }
 
             });
@@ -1308,8 +1312,8 @@ function custom_filter_ajax_by_categories()
                 },
                 beforeSend: function()
                 {
-                    var loader = '<div class="lds-facebook"><div></div><div></div><div></div></div>';
-                    // jQuery()
+                    jQuery('#result').fadeOut();
+                    jQuery('#loader-qt').fadeIn();
                 },
                 success: function(data)
                 {
@@ -1317,7 +1321,8 @@ function custom_filter_ajax_by_categories()
                 },
                 complete: function()
                 {
-                    // hide loading
+                    jQuery('#loader-qt').fadeOut();
+                    jQuery('#result').fadeIn();
                 }
             });
         }
@@ -1376,11 +1381,19 @@ function custom_filter_ajax_by_categories()
         <p class="search__title">o <b>que</b> você <b>procura?</b></p>
 
         <div class="search__wrapperInput">
-            <input type="text" id="" class="" placeholder="Digite aqui" onkeyup="ajax_search(jQuery(this))">
+            <input type="text" id="" class="search__input" placeholder="Digite aqui" onchange="ajax_search(jQuery(this))">
             <i class="fas fas-search"></i>
         </div>
     </div>
+
+    <!-- Loader -->
+    <div id="loader-qt" class="lds-facebook">
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
     
+    <!-- Resultados -->
     <div id="result" style="margin-bottom: 82px;"></div>
 
     <?php
@@ -1431,7 +1444,11 @@ function qt_filter_function()
     $total_posts = $query->found_posts;
 
     if( $query->have_posts() ) :
-        echo '<p style="margin-top: 16px;">Encontramos <b>' . $total_posts . '</b> Produto(s) na categoria <b>' . $curr_term_name . '</b></p>';
+        if (!empty($term_id)) :
+            echo '<p style="margin-top: 16px;">Encontramos <b>' . $total_posts . '</b> Produto(s) na categoria <b>' . $curr_term_name . '</b></p>';
+        else :
+            echo '<p style="margin-top: 16px;">Encontramos <b>' . $total_posts . '</b> Produto(s) na busca por <b>' . $sanitized_keyword . '</b></p>';
+        endif;
         echo '<div class="card__container">';
             while( $query->have_posts() ): 
                 $query->the_post();
