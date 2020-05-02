@@ -1293,6 +1293,34 @@ function custom_filter_ajax_by_categories()
 
             return false;
         }
+
+        function ajax_search(el)
+        {
+            var keywords = el.val();
+            // console.log(keywords);
+            
+            jQuery.ajax({
+                type: 'POST',
+                url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                data: {
+                    action: 'qt_filter_function',
+                    keyword: keywords,
+                },
+                beforeSend: function()
+                {
+                    var loader = '<div class="lds-facebook"><div></div><div></div><div></div></div>';
+                    // jQuery()
+                },
+                success: function(data)
+                {
+                    jQuery('#result').html(data);
+                },
+                complete: function()
+                {
+                    // hide loading
+                }
+            });
+        }
     </script>
 
     <div class="filter__selectbox">
@@ -1348,7 +1376,7 @@ function custom_filter_ajax_by_categories()
         <p class="search__title">o <b>que</b> você <b>procura?</b></p>
 
         <div class="search__wrapperInput">
-            <input type="text" id="" class="" placeholder="Digite aqui">
+            <input type="text" id="" class="" placeholder="Digite aqui" onkeyup="ajax_search(jQuery(this))">
             <i class="fas fas-search"></i>
         </div>
     </div>
@@ -1370,24 +1398,35 @@ add_action('wp_ajax_nopriv_qt_filter_function', 'qt_filter_function');
 
 function qt_filter_function()
 {
+    // GET PARAMETERS
     $term_id = $_POST['term_id'];
-    $curr_term = get_term_by('id', $term_id, 'categorias');
-    $curr_term_name = $curr_term->name;
+    $keyword_search = $_POST['keyword'];
 
     $args = array(
         'post_type'     => 'products',
         'post_status'   => 'publish',
         'orderby'       => 'date',
         'posts_per_page'=> '-1',
-        'tax_query'     => array(
+    );
+
+    if (!empty($term_id)) :
+        $curr_term = get_term_by('id', $term_id, 'categorias');
+        $curr_term_name = $curr_term->name;
+
+        $args['tax_query'] = array(
             array(
                 'taxonomy'  => 'categorias',
                 'field'     => 'term_id',
                 'terms'     => array($term_id)
             ),
-        ),
-    );
+        );
+        
+    else :
+        $sanitized_keyword = trim($keyword_search);
+        $args['s'] = $sanitized_keyword;
 
+    endif;
+    
     $query = new WP_Query($args);
     $total_posts = $query->found_posts;
 
