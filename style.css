@@ -223,3 +223,31 @@
 .element--off{
     display: none;
 }
+
+
+/* Custom ontent before the single post products */
+.header-internas{
+    width: 100%;
+    background-color: #3E3E4E;
+    padding-top: 35px;
+    padding-bottom: 20px;
+}
+.header-internas>h2{
+    font-family: "Roboto";
+    font-size: 28px;
+    font-weight: 300;
+    color: #FFFFFF;
+    margin-top: 15px;
+}
+.header-internas>#breadcrumb{
+    margin: 0 auto;
+    padding: 0 0 10px;
+    width: 780px;
+    text-align: center;
+}
+.header-internas>#breadcrumb>li{
+    display: inline;
+    font-size: 10px;
+    font-family: "Arial";
+    color: #FFFFFF;
+}

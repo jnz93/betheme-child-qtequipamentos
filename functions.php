@@ -1409,7 +1409,6 @@ add_shortcode('filter_ajax_by_categories', 'custom_filter_ajax_by_categories');
  */
 add_action('wp_ajax_qt_filter_function', 'qt_filter_function');
 add_action('wp_ajax_nopriv_qt_filter_function', 'qt_filter_function');
-
 function qt_filter_function()
 {
     // GET PARAMETERS
@@ -1486,3 +1485,51 @@ function qt_filter_function()
     unset($query);
 	die();
 }
+
+/**
+ * Adding filter to before single post page
+ * 
+ */
+function custom_content_for_products($content)
+{
+    if (is_single() || get_post_type() == 'products') :
+        $before_content = '<div class="header-internas">
+                            <div class="container">
+                                <div class="text-center title-container no-line">
+                                    <i class="icon icon-produtos center-block"></i>
+                                    <h2>
+                                        Nossa linha de <span class="black">Produtos</span>
+                                    </h2>
+                                </div>
+                                <ul id="breadcrumb">
+                                    <li>Você está em: QT EQUIPAMENTOS </li>
+                                    <li><a href="https://qtequipamentos.com.br/" title="Ir para a Home"> &gt; Home</a></li>
+                                    <li><a href="https://qtequipamentos.com.br/produtos" title="Ir para a produtos"> &gt; Produtos</a></li>
+                                    <li><a href="https://qtequipamentos.com.br/produtos/caixas-as-1000" title=""> &gt; Caixas AS 1000</a></li>
+                                    <li> &gt; Caixas AS 1000</li>
+                                </ul>
+                            </div>
+                        </div>';
+
+        $after_content = '<section class="area-chamada">
+                            <div class="chamada text-center">
+                                <h4>Tecnologia sempre priorizando a qualidade.</h4>
+                                <p>Vamos conversar?</p>
+                                <a href="https://qtequipamentos.com.br/fale-conosco" title="" class="bt">Saiba <strong>mais</strong></a>
+                            </div>
+                        </section>';
+
+        $full_content = $before_content . $content . $after_content;
+
+        return $full_content;
+        
+    else :
+        
+        return $content;
+
+    endif;
+}
+// add_filter('the_content', 'custom_content_for_products', 10);
+
+// add_filter($tag, $function_to_add, $priority, $accepted_args)
+// apply_filters($tag, $value)
