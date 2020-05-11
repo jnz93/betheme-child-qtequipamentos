@@ -506,6 +506,7 @@ function enqueue_child_scripts()
         array( $parent_style ),
         wp_get_theme()->get('Version')
     );
+    wp_enqueue_style('fontawesome', get_stylesheet_directory_uri() . '/assets/fontawesome/css/all.min.css', array());
 }
 add_action('wp_enqueue_scripts', 'enqueue_child_scripts');
 
